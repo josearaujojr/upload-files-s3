@@ -7,33 +7,35 @@ set -e
 . ./3-s3_utils.sh
 
 FILES_DIR="./files"
-UPLOAD_PREFIX="uploads"
 
-echo "- INICIANDO UPLOAD DE ARQUIVOS...\n"
+echo "--- INICIANDO UPLOAD DE ARQUIVOS ---"
 
 if [ ! -d "$FILES_DIR" ]; then
-  echo "- ERRO Diretório $FILES_DIR não encontrado.\n"
+  echo "ERRO: Diretório $FILES_DIR não encontrado."
   exit 1
 fi
 
 for LOCAL_FILE in "$FILES_DIR"/*; do
+  # Se o diretório estiver vazio, o glob retorna o próprio padrão.
+  # Ignoramos esse caso.
+  [ -e "$LOCAL_FILE" ] || continue
+
   case "$LOCAL_FILE" in
     *.gz) 
-      echo "\n- IGNORANDO arquivo já comprimido: $LOCAL_FILE \n"
+      echo "INFO: Ignorando arquivo já comprimido: $LOCAL_FILE"
       continue
       ;;
   esac
 
-  if validate_file "$LOCAL_FILE"; then
-    BASENAME=$(basename "$LOCAL_FILE")
-    COMPRESSED_FILE="$FILES_DIR/$BASENAME.gz"
-    S3_KEY="$UPLOAD_PREFIX/$BASENAME.gz"
+  BASENAME=$(basename "$LOCAL_FILE")
+  COMPRESSED_FILE="$FILES_DIR/$BASENAME.gz"
+  S3_KEY="$UPLOAD_PREFIX/$BASENAME.gz"
 
-    echo "- PROCESSANDO $LOCAL_FILE ... \n"
-    compress_file "$LOCAL_FILE" "$COMPRESSED_FILE"
-    s3_upload "$COMPRESSED_FILE" "$S3_KEY"
-  fi
+  echo "PROCESSANDO: $LOCAL_FILE..."
+  compress_file "$LOCAL_FILE" "$COMPRESSED_FILE"
+  s3_upload "$COMPRESSED_FILE" "$S3_KEY"
 done
 
-echo "📂 Arquivos atuais no bucket:"
+echo "--- UPLOAD FINALIZADO ---"
+echo "\n📂 Arquivos atuais no bucket:"
 s3_list "$UPLOAD_PREFIX/"
