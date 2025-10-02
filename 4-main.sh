@@ -16,13 +16,17 @@ if [ ! -d "$FILES_DIR" ]; then
 fi
 
 for LOCAL_FILE in "$FILES_DIR"/*; do
-  # Se o diretório estiver vazio, o glob retorna o próprio padrão.
-  # Ignoramos esse caso.
   [ -e "$LOCAL_FILE" ] || continue
 
   case "$LOCAL_FILE" in
     *.gz) 
       echo "INFO: Ignorando arquivo já comprimido: $LOCAL_FILE"
+      continue
+      ;;
+    *.txt)
+      ;;
+    *)
+      echo "INFO: Ignorando tipo de arquivo não permitido: $LOCAL_FILE"
       continue
       ;;
   esac
